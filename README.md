@@ -20,8 +20,8 @@ To see up to date code, make sure to switch to the master branch.
 v1.0.0
 ------
 
-This implementation currently supports only UDP as a transport
-protocol. TCP and TLS are unsupported.
+This implementation currently supports UDP and TCP as a transport
+protocol. TLS is unsupported.
 
 The library provides an API that applications can use to log messages
 directly to a Graylog server and an `io.Writer` that can be used to
@@ -42,7 +42,7 @@ go-gelf is go get-able:
 
     or
 
-	go get github.com/Graylog2/go-gelf/gelf
+    go get github.com/Graylog2/go-gelf/gelf
 
 This will get you version 1.0.0, with only UDP support and legacy API.
 Newer versions are available through GoPkg.in:
@@ -56,6 +56,7 @@ The easiest way to integrate graylog logging into your go app is by
 having your `main` function (or even `init`) call `log.SetOutput()`.
 By using an `io.MultiWriter`, we can log to both stdout and graylog -
 giving us both centralized and local logs.  (Redundancy is nice).
+<<<<<<< HEAD
 ``` golang
 package main
 
@@ -90,11 +91,51 @@ func main() {
 	log.Printf("Hello gray World")
 
 	// ...
+=======
+
+```golang
+package main
+
+import (
+  "flag"
+  "gopkg.in/Graylog2/go-gelf.v2/gelf"
+  "io"
+  "log"
+  "os"
+)
+
+func main() {
+  var graylogAddr string
+
+  flag.StringVar(&graylogAddr, "graylog", "", "graylog server addr")
+  flag.Parse()
+
+  if graylogAddr != "" {
+          // If using UDP
+    gelfWriter, err := gelf.NewUDPWriter(graylogAddr)
+          // If using TCP
+          //gelfWriter, err := gelf.NewTCPWriter(graylogAddr)
+    if err != nil {
+      log.Fatalf("gelf.NewWriter: %s", err)
+    }
+    // log to both stderr and graylog2
+    log.SetOutput(io.MultiWriter(os.Stderr, gelfWriter))
+    log.Printf("logging to stderr & graylog2@'%s'", graylogAddr)
+  }
+
+  // From here on out, any calls to log.Print* functions
+  // will appear on stdout, and be sent over UDP or TCP to the
+  // specified Graylog2 server.
+
+  log.Printf("Hello gray World")
+
+  // ...
+>>>>>>> 1550ee647df0510058c9d67a45c56f18911d80b8
 }
 ```
 The above program can be invoked as:
 
-	go run test.go -graylog=localhost:12201
+    go run test.go -graylog=localhost:12201
 
 When using UDP messages may be dropped or re-ordered. However, Graylog
 server availability will not impact application performance; there is
